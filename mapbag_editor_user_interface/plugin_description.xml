@@ -1,0 +1,17 @@
+<library path="libmapbag_editor_user_interface">
+    <class name="mapbag_editor_user_interface/PolygonTool"
+           type="mapbag_editor_user_interface::PolygonTool"
+           base_class_type="rviz::Tool">
+        <description>
+            Tool to select Submap from the Hector Mapbag.
+        </description>
+    </class>
+    <class name="mapbag_editor_user_interface/EditorUserInterface"
+           type="mapbag_editor_user_interface::EditorUserInterface"
+           base_class_type="rviz::Display">
+        <description>
+            Hector Mapbag Editor User Interface.
+        </description>
+    </class>
+</library>
+

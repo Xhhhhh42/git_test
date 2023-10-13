@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<launch>
+  <arg name="rviz_config" default="$(find mapbag_editor_server)/config/ui.rviz"/>
+  <arg name="fullscreen" default="false"/>
+
+  <arg name="fullscreen_param" value="--fullscreen" if="$(arg fullscreen)"/>
+  <arg name="fullscreen_param" value="" unless="$(arg fullscreen)"/>
+
+  <node pkg="rviz" type="rviz" name="$(anon rviz_hector_ui)"
+        args="$(arg fullscreen_param) -d $(arg rviz_config)"
+        respawn="true">
+  </node>
+</launch>

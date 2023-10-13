@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mapbag_editor_user_interface</name>
+  <version>0.0.0</version>
+  <description>The mapbag_editor_user_interface package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="xiayuchen66@gmail.com">Yuchen Xia</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/mapbag_editor_user_interface</url> -->
+
+
+  <!-- Author tags are optional, multiple are allowed, one per tag -->
+  <!-- Authors do not have to be maintainers, but could be -->
+  <!-- Example: -->
+  <author email="xiayuchen66@gmail.com">Yuchen Xia</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>grid_map_msgs</build_depend>
+  <build_depend>hector_math</build_depend>
+  <build_depend>hector_rviz_overlay</build_depend>
+  <build_depend>hector_world_heightmap</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rviz</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>grid_map_msgs</build_export_depend>
+  <build_export_depend>hector_math</build_export_depend>
+  <build_export_depend>hector_rviz_overlay</build_export_depend>
+  <build_export_depend>hector_world_heightmap</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rviz</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>visualization_msgs</build_export_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>grid_map_msgs</exec_depend>
+  <exec_depend>hector_math</exec_depend>
+  <exec_depend>hector_rviz_overlay</exec_depend>
+  <exec_depend>hector_world_heightmap</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  
+  <exec_depend>hector_internal_qml_controls</exec_depend>
+  <exec_depend>hector_qml_controls</exec_depend>
+  <exec_depend>hector_user_interface_resources</exec_depend>
+  <exec_depend>libqt5-qml</exec_depend>
+  <exec_depend>mission_msgs</exec_depend>
+  <exec_depend>qml-module-qtmultimedia</exec_depend>
+  <exec_depend>qml-module-qtquick-controls2</exec_depend>
+  <exec_depend>qml-module-qtquick-layouts</exec_depend>
+  <exec_depend>qml-module-qtquick2</exec_depend>
+  <exec_depend>qml_ros_plugin</exec_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <rviz plugin="${prefix}/plugin_description.xml"/>
+  </export>
+</package>

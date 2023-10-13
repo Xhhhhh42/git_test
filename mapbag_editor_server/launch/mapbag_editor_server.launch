@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<launch>
+  <arg name="map_resolution" default="0.0"/> 
+  <arg name="world_frame" default="world"/>
+  <arg name="grid_map_layer" default="elevation"/>
+
+  <node pkg="mapbag_editor_server" type="mapbag_editor_server_node" name="mapbag_editor_server_node" output="screen">
+    <param name="map_resolution" value="$(arg map_resolution)"/>
+    <param name="world_frame" value="$(arg world_frame)"/>
+    <param name="grid_map_layer" value="$(arg grid_map_layer)"/>
+    <remap from="/elevation_map" to="/elevation_mapping/elevation_map"/>
+  </node>
+</launch>
