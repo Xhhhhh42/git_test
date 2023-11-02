@@ -65,6 +65,7 @@
   <exec_depend>qml-module-qtquick-controls2</exec_depend>
   <exec_depend>qml-module-qtquick-layouts</exec_depend>
   <exec_depend>qml-module-qtquick2</exec_depend>
+  <exec_depend>qml-module-qt-labs-platform</exec_depend>
   <exec_depend>qml_ros_plugin</exec_depend>
 
 

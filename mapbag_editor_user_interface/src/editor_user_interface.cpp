@@ -6,7 +6,7 @@ namespace mapbag_editor_user_interface
 {
 QString EditorUserInterface::getPathToQml()
 {
-  std::string path = ros::package::getPath("mapbag_editor_user_interface");
+  std::string path = ros::package::getPath( "mapbag_editor_user_interface" );
   return QString::fromStdString( path ) + "/ui/main.qml";
 }
 } // namespace mapbag_editor_user_interface

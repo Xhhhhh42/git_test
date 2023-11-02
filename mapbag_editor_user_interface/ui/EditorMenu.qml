@@ -1,7 +1,7 @@
-import QtQuick 2.12
+import QtQuick 2.1
 import QtQuick.Controls 2.12
-import QtQuick.Layouts 1.1
-import QtQuick.Dialogs 1.3
+import QtQuick.Layouts 1.3
+// import QtQuick.Dialogs 1.3
 import Hector.Controls 1.0
 import Hector.Icons 1.0
 import Hector.InternalControls 1.0
@@ -9,6 +9,9 @@ import Hector.Utils 1.0
 import Hector.Style 1.0
 import QtQuick.Controls.Material 2.2
 import Ros 1.0
+
+import Qt.labs.platform 1.1
+
 
 Rectangle {
     id: root
@@ -19,6 +22,14 @@ Rectangle {
     signal editvisible()
     signal edit_nichtvisible()
     signal clearmap()
+
+    function simulateSaveClick() {
+        menueins_zwei.clicked()
+    }
+
+    function simulateClearClick() {
+        menueins_vier.clicked()
+    }
 
     ColumnLayout{
         Rectangle {
@@ -176,6 +187,7 @@ Rectangle {
                         onClicked: { 
                             menuBar_eins.isClicked = false
                             mapFileDialog.open()
+                            // console.log(Ros.package.getPath("mapbag_editor_server"))
                         }
                     }
 
@@ -235,7 +247,8 @@ Rectangle {
 
                         onClicked: { 
                             menuBar_eins.isClicked = false
-                            saveMapFileDialog.open()
+                            // saveMapFileDialog.open()
+                            newfileDialog.open()
                         }
                     }
 
@@ -437,12 +450,23 @@ Rectangle {
         id: mapFileDialog
         title: "Please choose a map"
         folder: Ros.package.getPath("mapbag_editor_server")+"/maps"
+        // folder: "/home/xhhh/hector/src/mapbag_editor/mapbag_editor_server/maps"
         nameFilters: [ "Map file (*.whm *.mapbag)", "All files (*)" ]
         onAccepted: {
             polygonpointTool.tool.clearmap()
             Service.callAsync("/mapbag_editor_server_node/clearmapbag", "hector_std_msgs/StringService", { param: "" })
-            root.edit_nichtvisible()
-            Service.callAsync("/mapbag_editor_server_node/load_map", "hector_std_msgs/StringService", {param: fileUrl.toString().substr(7)})
+            // Service.callAsync("/mapbag_editor_server_node/load_map", "hector_std_msgs/StringService", {param: fileUrl.toString().substr(7)})
+            Service.callAsync("/mapbag_editor_server_node/load_map", "hector_std_msgs/StringService", {param: file.toString().substr(7)})
+        }
+    }
+
+    FileDialog {
+        id: newfileDialog
+        title: "Save Map as"
+        folder: Ros.package.getPath("mapbag_editor_server")+"/maps"
+        nameFilters: [ "Map file (*.whm *.mapbag)", "All files (*)" ]
+        fileMode: FileDialog.SaveFile
+        onAccepted: {
         }
     }
 
@@ -451,9 +475,9 @@ Rectangle {
         title: "Save Map"
         folder: Ros.package.getPath("mapbag_editor_server") + "/maps"
         nameFilters: [ "Map file (*.whm *.mapbag)", "All files (*)" ]
-        // fileMode: FileDialog.SaveFile
         onAccepted: {
-            Service.callAsync("/mapbag_editor_server_node/save_map", "hector_std_msgs/StringService", { param: fileUrl.toString().substr(7) })
+            // Service.callAsync("/mapbag_editor_server_node/save_map", "hector_std_msgs/StringService", { param: fileUrl.toString().substr(7) })
+            Service.callAsync("/mapbag_editor_server_node/save_map", "hector_std_msgs/StringService", { param: file.toString().substr(7) })
         }
     }
 
@@ -465,7 +489,6 @@ Rectangle {
         onAccepted: {
             polygonpointTool.tool.clearmap()
             Service.callAsync("/mapbag_editor_server_node/clearmapbag", "hector_std_msgs/StringService", { param: "" })
-            root.edit_nichtvisible()
             clearMapbagDialog.close()
             polygonpointTool.tool.changeEditorMode( 3 )
             root.clearmap()

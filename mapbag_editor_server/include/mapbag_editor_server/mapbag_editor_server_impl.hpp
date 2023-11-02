@@ -3,6 +3,7 @@
 
 #include "mapbag_editor_server.h"
 #include "polygon_indices_iterator.h"
+#include "polygonCheck.h"
 
 #include <hector_world_heightmap/io.h>
 #include <hector_world_heightmap/map_bag.h>
@@ -47,24 +48,26 @@ MapbagEditorServer<Scalar>::MapbagEditorServer( const ros::NodeHandle &nh, const
   undo_service_ = pnh_.advertiseService( "undo", &MapbagEditorServer<Scalar>::onUndo, this );
   redo_service_ = pnh_.advertiseService( "redo", &MapbagEditorServer<Scalar>::onRedo, this );
   save_mode_service_ = pnh_.advertiseService( "modechange", &MapbagEditorServer<Scalar>::onSaveModeChange, this );
+  system_settings_service_ = pnh_.advertiseService( "systemsettings", &MapbagEditorServer<Scalar>::onSettingsChange, this );
 
   pub_resolution_ = pnh_.advertise<std_msgs::Float64>( "mapbag_resolution", 1, true );
   pub_frame_ = pnh_.advertise<std_msgs::String>( "mapbag_frame", 1, true );
 
   pub_submap_ = pnh_.advertise<grid_map_msgs::GridMap>( "submap", 1, true );
   pub_submap_ref_ = pnh_.advertise<grid_map_msgs::GridMap>( "submap_ref", 1, true );
-  pub_submap_pos_ = pnh_.advertise<geometry_msgs::Pose>( "submap_posi", 1, true );
+  // pub_submap_pos_ = pnh_.advertise<geometry_msgs::Pose>( "submap_posi", 1, true );
 
   changedsubmap_sub_ = nh_.subscribe<grid_map_msgs::GridMap>(
       "changedsubmap", 5, [&]( const grid_map_msgs::GridMap::ConstPtr &map ) { saveSubmapCallback( *map ); });
   verschiebsubmap_sub_ = nh_.subscribe<grid_map_msgs::GridMap>(
       "verschiebsubmap", 5, [&]( const grid_map_msgs::GridMap::ConstPtr &map ) { saveVerschiebenCallback( *map ); });
-  // deletesubmap_sub_ = nh_.subscribe<grid_map_msgs::GridMap>(
-  //     "verschiebsubmap", 5, [&]( const grid_map_msgs::GridMap::ConstPtr &map ) { deleteSubmapCallback( *map ); });    
 
   last_confirmed_points_.clear(); 
   polygon_points_.clear(); 
   save_mode_ = SAVE_DEAKTIV;
+  polygon_mode_ = KONKAVHULL;
+  intepolation_mode_ = 0;
+  smooth_mode_ = 0;
 
 
   //test
@@ -185,7 +188,7 @@ bool MapbagEditorServer<Scalar>::loadMap( const std::string &path )
 }
 
 
-/** Update polygonpoints_indices__ according to multipoints, to convert the set of coordinate points to index space.
+/** Update polygonpoints_indices_ according to multipoints, to convert the set of coordinate points to index space.
  * @param multipoints polygon_points_: The set of incoming polygon points.
  */
 template<typename Scalar>
@@ -263,14 +266,19 @@ void MapbagEditorServer<Scalar>::publishSubmapInformation( const size_t &points 
     // muss noch optimiert werden
     typename HeightmapRef<Scalar>::ConstPtr submap = mapbag_->getSubMap( polygon_points_[0], 1, 1 );
     if ( submap == nullptr ) { ROS_WARN_STREAM_NAMED( "MapbagEditorServer", " Submap ist leer. " ); }
-    pub_submap_.publish( heightmapToMsg<Scalar>( submap ));
+    // geometry_msgs::Pose center_pose;
+    // center_pose.position.x = polygon_points_[0][0];
+    // center_pose.position.y = polygon_points_[0][1];
+    // center_pose.position.z = polygon_points_[0][2];
+    // pub_submap_pos_.publish( center_pose );
+    // pub_submap_.publish( heightmapToMsg<Scalar>( submap ));
   } else {
     if ( whm_ == nullptr ) return;
     int i = 0;
     whm_->getMap( 0 )->map_.setConstant( numeric_limits<Scalar>::quiet_NaN() );
     hector_world_heightmap::integrators::HeightmapIntegrator<Scalar> heightmapIntegrator( whm_ );
 
-    for ( auto it = sub_submaps_.begin(); it != sub_submaps_.end(); ++it)
+    for ( auto it = sub_submaps_.begin(); it != sub_submaps_.end(); ++it )
     {
       const auto& element = *it;
       heightmapIntegrator.integrate( 
@@ -278,6 +286,11 @@ void MapbagEditorServer<Scalar>::publishSubmapInformation( const size_t &points 
                           integrators::IntegratorMode::SourceKnown );
       i++;
     }
+    // geometry_msgs::Pose center_pose;
+    // center_pose.position.x = whm_->getMap( 0 )->origin()[0];
+    // center_pose.position.y = whm_->getMap( 0 )->origin()[1];
+    // center_pose.position.z = whm_->getMap( 0 )->origin()[2];
+    // pub_submap_pos_.publish( center_pose );
     pub_submap_.publish( heightmapToMsg<Scalar>( whm_->getMap( 0 )));
   }
 }
@@ -300,10 +313,7 @@ bool MapbagEditorServer<Scalar>::onPolygonGridMap( mapbag_editor_msgs::SubmapReq
   }
   poly_submap_confirmed_ = false;
 
-  //mode_test
-  // ROS_INFO_STREAM_NAMED( "MapbagEditorServer", req.mode );
-  //response_test
-  resp.result = 23;
+  
 
   // Process the data from the request and update 'confirmed_points'
   std::vector<hector_math::Vector3<Scalar>> confirmed_points;
@@ -318,9 +328,30 @@ bool MapbagEditorServer<Scalar>::onPolygonGridMap( mapbag_editor_msgs::SubmapReq
     last_confirmed_points_.clear();
     last_confirmed_points_ = confirmed_points;
 
-    if( confirmed_points.size() == 1 || confirmed_points.size() == 2 ) { updatePolygonPoints( confirmed_points ); } 
-    else {
-      // noch nicht fertig( konvexhull oder sequentiell )
+    if( confirmed_points.size() == 1 || confirmed_points.size() == 2 || polygon_mode_ == ROOMWALLS ) { updatePolygonPoints( confirmed_points ); } 
+    else if( polygon_mode_ == KONKAVHULL ) {
+      // if() {
+            //mode_test
+            // ROS_INFO_STREAM_NAMED( "MapbagEditorServer", req.mode );
+            //response_test
+            // resp.result = 23;
+      //   return polygonGridMap( polygon_points_ );
+      // }
+      // concav_hull_generator_ = make_shared<Concav_Hull_Generator<Scalar>>( confirmed_points );
+      // concav_hull_generator_->concavHull( confirmed_points, 3 );
+      // std::vector<hector_math::Vector3<Scalar>> concav_points = concav_hull_generator_->concav_points();
+      // for ( size_t i = 0; i < concav_points.size(); i++ ) 
+      // {
+      //   ROS_INFO_STREAM_NAMED("MapbagEditorServer", 
+      //                         "concav: " << "x: " << concav_points[i][0] << ", y: " << concav_points[i][1] << ", z: " << concav_points[i][2] );
+      // }
+      if( !polygonCheck( confirmed_points ))
+      { ROS_INFO_STREAM_NAMED( "MapbagEditorServer", 
+                                "Concavhull false, please check the input polygon points!" );
+        resp.result = 1;
+      } else { resp.result = 0; }
+      updatePolygonPoints( confirmed_points );
+    } else if( polygon_mode_ == KONVEXHULL ) {
       // For more points, compute the convex hull using Graham Scan
       std::vector<hector_math::Vector3<Scalar>> ch_vertex_points;
       gs_ch_executor_ = make_shared<GrahamScan_CH_Executor<Scalar>>( confirmed_points );
@@ -372,36 +403,38 @@ void MapbagEditorServer<Scalar>::polygonSubmap( const std::vector<hector_math::V
 
   // Handle cases depending on the number of points( point, line, polygon )
   if( polygon_points.size() == 0 ) return;
-  else if( polygon_points.size() == 1 ) 
-  {
+  else if( polygon_points.size() == 1 ) {
     // muss noch optimiert werden
     typename HeightmapRef<Scalar>::ConstPtr submap = mapbag_->getSubMap( polygon_points[0], 3, 3 );
     grid_map_msgs::GridMap msg = heightmapToMsg<Scalar>( submap );
     pub_submap_ref_.publish( msg );
     invoker_backup( msgToHeightmap<Scalar>( msg, "elevation" ) );
     return;
-  } else if( polygon_points.size() == 2 ) 
-  {
-    MapBagIndex index_start, index_end;
-    mapbag_->getIndexAt( polygon_points[0], index_start );
-    mapbag_->getIndexAt( polygon_points[1], index_end );
-
-    index_line_op( index_start, polygon_points[0] );
-    index_line_op( index_end, polygon_points[1] );
-
-    bh_line_executor_ = make_shared<Bresenhams_Line_Executor<Eigen::Index>>( index_start, index_end );
-    bh_line_executor_->bresenhams_line();
+  } else if( polygon_points.size() == 2 ) { index_line_generate( polygon_points[0], polygon_points[1], polygonIte_indices_ ); 
+  } else if( polygon_mode_ == KONKAVHULL ){
+    updateMultipointsIndices( polygon_points );
     polygonIte_indices_.clear();
-    polygonIte_indices_ = bh_line_executor_->line_indices();
-  } else {
+    hector_math::iteratePolygon( polygonpoints_indices_, submap_row_min_, submap_row_max_, submap_col_min_, submap_col_max_,
+                                          [this]( Eigen::Index x, Eigen::Index y ) {
+                                              Vector2<Eigen::Index> new_index( x, y );
+                                              polygonIte_indices_.emplace_back( new_index );
+                                          });     
+  } else if( polygon_mode_ == KONVEXHULL ){
     updateMultipointsIndices( polygon_points );
     polygonIte_indices_.clear();
     polygonIterator( polygonpoints_indices_, [this]( Eigen::Index x, Eigen::Index y ) {
-                                Vector2<Eigen::Index> new_index(x, y);
-                                polygonIte_indices_.emplace_back( new_index );
-                                // ROS_INFO_STREAM_NAMED( "MapbagEditorServer",
-                                //     "indicesdetected: " << "x: " << new_index[0] << "y: " << new_index[1]);
-                            }) ;     
+                                                Vector2<Eigen::Index> new_index( x, y );
+                                                polygonIte_indices_.emplace_back( new_index );
+                                            }) ;     
+  } else if( polygon_mode_ == ROOMWALLS ) {
+    polygonIte_indices_.clear();
+    for( size_t i = 1; i < polygon_points.size(); i++ ) {
+      vector<Vector2<Eigen::Index>> line_index;
+      index_line_generate( polygon_points[ i - 1 ], polygon_points[i], line_index );
+      for( const auto &element : line_index ) {
+        polygonIte_indices_.push_back( element ); 
+      }
+    }    
   }
 
   // Calculate the bounding box of the polygon
@@ -442,19 +475,6 @@ void MapbagEditorServer<Scalar>::polygonSubmap( const std::vector<hector_math::V
                       ( map, Vector3<Scalar>( polygon_submap->origin()[0], polygon_submap->origin()[1], 0 ), resolution_, 0, 0 ));
   grid_map_msgs::GridMap msg = heightmapToMsg<Scalar>( whm_->getMap( 0 ));
   pub_submap_ref_.publish( msg );
-
-  Vector2<Scalar> pos = whm_->getMap( 0 )->origin();
-  geometry_msgs::Pose pose_msg;
-  pose_msg.position.x = pos[0];  // 设置位置坐标
-  pose_msg.position.y = pos[1];
-  pose_msg.position.z = whm_->getMap( 0 )->getValueAt( pos );
-  pose_msg.orientation.x = 0.0;  // 设置姿态
-  pose_msg.orientation.y = 0.0;
-  pose_msg.orientation.z = 0.0;
-  pose_msg.orientation.w = 1.0;
-  pub_submap_pos_.publish( pose_msg );
-
-
   invoker_backup( msgToHeightmap<Scalar>( msg, "elevation" ) );
 
   //Version 2 : additive Subamp
@@ -466,7 +486,7 @@ void MapbagEditorServer<Scalar>::polygonSubmap( const std::vector<hector_math::V
                                 element[1] - index_center.index.col + index_c_sub.index.col }};
 
     typename HeightmapRef<Scalar>::ConstPtr sub_submap;
-    if( polygon_points.size() == 2 ) {
+    if( polygon_points.size() == 2 || polygon_mode_ == ROOMWALLS ) {
       sub_submap = mapbag_->getSubMap( mapbag_->getLocationForIndex( index_temp ), 2, 2 );
     } else if( polygon_points.size() > 2 ) {
       sub_submap = mapbag_->getSubMap( mapbag_->getLocationForIndex( index_temp ), 1, 1 );
@@ -479,7 +499,24 @@ void MapbagEditorServer<Scalar>::polygonSubmap( const std::vector<hector_math::V
   }   
 
   poly_submap_confirmed_ = true;
-  invoker_first_save_ = 0;
+}
+
+
+template<typename Scalar>
+void MapbagEditorServer<Scalar>::index_line_generate( const hector_math::Vector3<Scalar> &point_start, const hector_math::Vector3<Scalar> &point_end,
+                                                      std::vector<hector_math::Vector2<Eigen::Index>> &indices )
+{
+  MapBagIndex index_start, index_end;
+  mapbag_->getIndexAt( point_start, index_start );
+  mapbag_->getIndexAt( point_end, index_end );
+
+  index_line_op( index_start, point_start );
+  index_line_op( index_end, point_end );
+
+  bh_line_executor_ = make_shared<Bresenhams_Line_Executor<Eigen::Index>>( index_start, index_end );
+  bh_line_executor_->bresenhams_line();
+  indices.clear();
+  indices = bh_line_executor_->line_indices();
 }
 
 
@@ -725,6 +762,28 @@ bool MapbagEditorServer<Scalar>::saveModeChange( const int &mode )
   } else if ( mode == 3 ){
     save_mode_ = SAVE_VERSCHIEBEN;
   } 
+  return true;
+}
+
+
+template<typename Scalar>
+bool MapbagEditorServer<Scalar>::onSettingsChange( mapbag_editor_msgs::SettingsRequest &req,
+                                                   mapbag_editor_msgs::SettingsResponse & )
+{ 
+  if ( req.polygon_mode != polygon_mode_ ) {
+    if ( req.polygon_mode == 0 ) polygon_mode_ = KONKAVHULL;
+    else if (req.polygon_mode == 1) polygon_mode_ = KONVEXHULL;
+    else if (req.polygon_mode == 2) polygon_mode_ = ROOMWALLS;
+    else {
+      ROS_WARN_STREAM_NAMED("MapbagEditorServer", 
+                          "Wrong Setting Configuration : Polygon Selection");
+    }
+    last_confirmed_points_.clear();
+  }
+  if( req.intepolation_mode != intepolation_mode_ ) intepolation_mode_ = req.intepolation_mode;
+  if( req.smooth_mode != smooth_mode_ ) smooth_mode_ = req.smooth_mode;
+  // ROS_INFO_STREAM_NAMED( "MapbagEditorServer", "polygon_mode_: " << polygon_mode_ << ",intepolation_mode_: " 
+  //                                               << intepolation_mode_ << ",smooth_mode_: " << smooth_mode_ );
   return true;
 }
 

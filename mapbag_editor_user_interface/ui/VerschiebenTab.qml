@@ -12,6 +12,9 @@ Rectangle {
 
     property var polygonpointTool
 
+    signal vers_cleared()
+    signal vers_saved()
+
     RowLayout {
         anchors.fill: root
         spacing: 0
@@ -52,7 +55,10 @@ Rectangle {
                                 }
                             }
                         }
-                        onClicked: polygonpointTool.tool.submapVerschiebenSave()
+                        onClicked: {
+                            polygonpointTool.tool.submapVerschiebenSave()
+                            root.vers_saved()
+                        }
                     }
                 }
                 RowLayout  {
@@ -77,7 +83,10 @@ Rectangle {
                                 }
                             }
                         }
-                        onClicked: polygonpointTool.tool.submapVerschiebenClear()
+                        onClicked: {
+                            polygonpointTool.tool.submapVerschiebenClear()
+                            root.vers_cleared()
+                        }
                     }
                 }
             }

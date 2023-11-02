@@ -105,6 +105,8 @@ public:
 
     Q_INVOKABLE void primitiveClear(); 
 
+    Q_INVOKABLE void smooth_filter(); 
+
     void publishToolmapInformation( const typename hector_world_heightmap::HeightmapRef<float>::ConstPtr &map );
 
 signals:
@@ -161,10 +163,13 @@ protected:
 private: 
     void submapSubscribe( const grid_map_msgs::GridMap &msg, hector_world_heightmap::Heightmap<float>::Ptr &map );
 
+    void bresenhamCircle( const int &radius, std::vector<std::pair<Eigen::Index,Eigen::Index>> &indices );
+
     ros::NodeHandle nh_;
     ros::Publisher mapToServer_pub_, mapInTool_pub_, mapVerschieben_pub_;
     ros::Subscriber resolution_sub_, frame_sub_;
     ros::Subscriber submap_sub_, submap_ref_sub_, newcenter_sub_;
+    ros::Publisher pub_submap_pos_;
 
     
     float resolution_;

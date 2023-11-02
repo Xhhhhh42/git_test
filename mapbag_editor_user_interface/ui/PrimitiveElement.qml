@@ -12,6 +12,10 @@ Rectangle {
 
     property var polygonpointTool
 
+    function simulateClearClick() {
+        clearbutton.clicked()
+    }
+
     PrimitiveDialog {
         id: primitiveDialog
         polygonpointTool: root.polygonpointTool
@@ -101,6 +105,7 @@ Rectangle {
                     visible: pro_drawer.drawerOpen
 
                     StyledButton {
+                        id: clearbutton
                         Layout.preferredWidth: Units.pt(60)
                         style: Style.activeStyle
                                 
@@ -209,6 +214,7 @@ Rectangle {
                             Text {
                                 text: (primitiveDialog.modepub == 0)? "Sphere" : (primitiveDialog.modepub == 1)? "Cuboid" : 
                                         (primitiveDialog.modepub == 2)? "Cube" : (primitiveDialog.modepub == 3)? "Triangular Prism" : ""
+                                font { pointSize: 13; weight: Font.Bold }
                             }
 
                             Text {
@@ -217,7 +223,7 @@ Rectangle {
                             }
 
                             Text {
-                                text: "    Winkel :  " + primitiveDialog.winkelpub + " Gard"
+                                text: "    Height( Index ) :  " + primitiveDialog.winkelpub
                                 visible: primitiveDialog.winkelpub > 0
                                 
                             }
@@ -236,17 +242,17 @@ Rectangle {
                             anchors.topMargin: Units.pt(12)
 
                             Text {
-                                text: "Length :  " + primitiveDialog.lengthpub 
+                                text: "Length( Index ) :  " + primitiveDialog.lengthpub 
                                 visible: primitiveDialog.lengthpub > 0                    
                             }
 
                             Text {
-                                text: "    Width :  " + primitiveDialog.widthpub
+                                text: "    Width( Index ) :  " + primitiveDialog.widthpub
                                 visible: primitiveDialog.widthpub > 0
                             }
 
                             Text {
-                                text: "    Height :  " + primitiveDialog.heightpub
+                                text: "    Height( Index ) :  " + primitiveDialog.heightpub
                                 visible: primitiveDialog.heightpub > 0
                             }
                         }

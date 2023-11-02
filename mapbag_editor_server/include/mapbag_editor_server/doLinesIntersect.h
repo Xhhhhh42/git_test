@@ -1,6 +1,6 @@
 /**
  * Created by Yuchen Xia on 27.10.23.
- * determine if two line segments intersect ( 2D )
+ * determine if two line segments intersect ( 2D ) --- Version 2
  * see: martin-thoma.com/how-to-check-if-two-line-segments-intersect/
  */
 
@@ -8,21 +8,22 @@
 #define MAPBAG_EDITOR_SERVER_DOLINESINTERSECT_H
 
 #include <hector_math/types.h>
+#include "server_math.h"
 
 namespace mapbag_editor_server
 {
 static constexpr double EPSILON = 0.000001;
 
-/**
- * 计算两个点的叉积
- * @param a 第一个点
- * @param b 第二个点
- * @return 叉积的值
- */
-template<typename Scalar>
-inline Scalar crossProduct( const hector_math::Vector3<Scalar> &a, const hector_math::Vector3<Scalar> &b ) {
-    return a[0] * b[1] - b[0] * a[1];
-}
+// /**
+//  * 计算两个点的叉积
+//  * @param a 第一个点
+//  * @param b 第二个点
+//  * @return 叉积的值
+//  */
+// template<typename Scalar>
+// inline Scalar crossProduct( const hector_math::Vector3<Scalar> &a, const hector_math::Vector3<Scalar> &b ) {
+//     return a[0] * b[1] - b[0] * a[1];
+// }
 
 
 /**

@@ -19,6 +19,7 @@ Rectangle {
     signal editorMode()
     signal polygonMode()
     signal pri_editorMode()
+    signal wrongTransfer()
     
     color: Style.background.container
     width: Units.pt(200)
@@ -289,5 +290,6 @@ Rectangle {
             visible_bc = !visible_bc
             root.height = Units.pt(205)
         }
+        onWrongInput: { root.wrongTransfer() }
     }
 }

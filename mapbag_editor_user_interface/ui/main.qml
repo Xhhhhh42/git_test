@@ -16,7 +16,8 @@ Item {
 
     property var style: Style.activeStyle
     property bool editor_visible: false
-    property bool pri_editor_visible: false
+    property bool pri_editor_visible: true
+    property bool wrong_info_visible: false
 
     property var polygonpointTool: {
         if ( !rviz || !rviz.toolManager || !rviz.toolManager.tools ) return null
@@ -81,10 +82,14 @@ Item {
         onPolygonMode: { 
             controlPanel.curr_index = 1 
             pri_editor_visible = true 
+            wrong_info_visible = false
         }
         onPri_editorMode: { 
             controlPanel.curr_index = 0 
             pri_editor_visible = true    
+        }
+        onWrongTransfer: {
+            wrong_info_visible = true
         }
     }
 
@@ -98,6 +103,13 @@ Item {
         height: Units.pt(120)
         style: Style.activeStyle
         visible: pri_editor_visible
+        wrongInfo_visible: wrong_info_visible
+        onSave: {
+            menu.simulateSaveClick()
+        }
+        onClear: {
+            menu.simulateClearClick()
+        }
     }
 
     EditorMenu {
@@ -110,11 +122,9 @@ Item {
         anchors.topMargin: -Units.pt(2)
         polygonpointTool: editorUserInterface.polygonpointTool
         onEdit_nichtvisible: { 
-            // editor_visible = false
             pri_editor_visible = false 
         }
         onEditvisible: { 
-            // editor_visible = true 
             pri_editor_visible = true
         }
         onClearmap: { 

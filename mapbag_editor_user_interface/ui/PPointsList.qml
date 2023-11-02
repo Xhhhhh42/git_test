@@ -20,6 +20,7 @@ Rectangle {
 
     signal confirmPolygon()
     signal updatePolygon()
+    signal wrongInput()
     signal changeMode()
     
     color: Style.background.container
@@ -267,16 +268,15 @@ Rectangle {
                             }
                         }
 
-                        onClicked: { 
-                            var msgArray = getMsg()
-                            // Service.callAsync( "/mapbag_editor_server_node/polygongridmap", "mapbag_editor_msgs/Submap", 
-                            //                     { datas: msgArray, mode: polygonmode })
-                            Service.callAsync( "/mapbag_editor_server_node/polygongridmap", "mapbag_editor_msgs/Submap", 
-                                                { datas: msgArray, mode: polygonmode }, function(response) { console.log("Service Response:", response.result) } )
-                            
+                        onClicked: {                             
                             plist.locked = !plist.locked
                             plist.confirmPolygon()
                             polygonpointTool.tool.changeEditorMode( 1 )
+                            var msgArray = getMsg()
+                            Service.callAsync( "/mapbag_editor_server_node/polygongridmap", "mapbag_editor_msgs/Submap", 
+                                                { datas: msgArray, mode: polygonmode }, function(response) { 
+                                                    if( response.result != 0 ) { plist.wrongInput() }
+                                                } )
                         }
                     }
                 }

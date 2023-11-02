@@ -21,7 +21,7 @@ GrahamScan_CH_Executor<Scalar>::~GrahamScan_CH_Executor() {}
 
 
 template<typename Scalar>
-bool GrahamScan_CH_Executor<Scalar>::comparepoints ( hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 ) {
+bool GrahamScan_CH_Executor<Scalar>::comparepoints ( const hector_math::Vector3<Scalar>& p1, const hector_math::Vector3<Scalar>& p2 ) {
     if (p2[1] != p1[1])
         return p2[1] < p1[1];
     return p2[0] > p1[0];
@@ -31,7 +31,8 @@ bool GrahamScan_CH_Executor<Scalar>::comparepoints ( hector_math::Vector3<Scalar
 // returns -1 if p2 is on the left side of line p0p1,
 // +1 for right side of line p0p1
 template<typename Scalar>
-int GrahamScan_CH_Executor<Scalar>::orien_comp( hector_math::Vector3<Scalar> p0, hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 ) {
+int GrahamScan_CH_Executor<Scalar>::orien_comp( const hector_math::Vector3<Scalar>& p0, const hector_math::Vector3<Scalar>& p1, 
+                                                const hector_math::Vector3<Scalar>& p2 ) {
     Scalar val = (p2[0] - p0[0]) * (p1[1] - p0[1]) 
               - (p2[1] - p0[1]) * (p1[0] - p0[0]);
     if (val == 0) return 0;
@@ -40,7 +41,7 @@ int GrahamScan_CH_Executor<Scalar>::orien_comp( hector_math::Vector3<Scalar> p0,
 
 
 template<typename Scalar>
-Scalar square( hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 )
+Scalar dist( const hector_math::Vector3<Scalar> &p1, const hector_math::Vector3<Scalar> &p2 )
 {
     Scalar dx = p2[0] - p1[0];
     Scalar dy = p2[1] - p1[1];
@@ -51,12 +52,12 @@ Scalar square( hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 
 // true: p1在p2之前
 // false: p1在p2之后
 template<typename Scalar>
-bool GrahamScan_CH_Executor<Scalar>::polar_order( hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 )    
+bool GrahamScan_CH_Executor<Scalar>::polar_order( const hector_math::Vector3<Scalar>& p1, const hector_math::Vector3<Scalar>& p2 )    
 {
-    int order = orien_comp(p0, p1, p2);
-    if (order == 0)
-        return square(p0, p1) < square(p0, p2);
-    return (order == -1);
+    int order = orien_comp( p0, p1, p2 );
+    if ( order == 0 )
+        return dist( p0, p1 ) < dist( p0, p2 );
+    return ( order == -1 );
 }
 
 
@@ -83,15 +84,12 @@ template<typename Scalar>
 bool GrahamScan_CH_Executor<Scalar>::grahamScan()
 {
     findP0();
-    std::sort( ordered_polygon_points_.begin() + 1, ordered_polygon_points_.end(),  [this] (const auto &p1, const auto &p2) { return polar_order(p1, p2); } );
-    // ROS_INFO_STREAM_NAMED( "MapbagEditorServer",
-    //                        "ordered_polygon_points_:" << " 0 : " << ordered_polygon_points_[0][0] << " 1 : " << ordered_polygon_points_[1][0] << " 2 : " << ordered_polygon_points_[2][0]
-    //                        << " 3 : " << ordered_polygon_points_[3][0] << " 4 : " << ordered_polygon_points_[4][0]); 
+    std::sort( ordered_polygon_points_.begin() + 1, ordered_polygon_points_.end(),  [this] ( const auto &p1, const auto &p2 ) { return polar_order( p1, p2 ); });
 
     ch_points_ = ordered_polygon_points_;
     
     for ( long unsigned int i = 1; i < ch_points_.size(); i++ ) {
-        while ( i < ch_points_.size() - 1 && orien_comp(p0, ch_points_[i], ch_points_[i + 1] ) == 0) {
+        while ( i < ch_points_.size() - 1 && orien_comp( p0, ch_points_[i], ch_points_[i + 1] ) == 0) {
             i++;
         }
         ch_points_[ch_vertex_number] = ch_points_[i];
@@ -118,11 +116,10 @@ bool GrahamScan_CH_Executor<Scalar>::grahamScan()
     }
 
     ch_points_.clear();
-    while (!convexHull_.empty()) {
-        ch_points_.push_back(convexHull_.top());
+    while ( !convexHull_.empty() ) {
+        ch_points_.push_back( convexHull_.top() );
         convexHull_.pop();
     }
-    // std::reverse(ch_points_.begin(), ch_points_.end()); 
     return true;
 }
 

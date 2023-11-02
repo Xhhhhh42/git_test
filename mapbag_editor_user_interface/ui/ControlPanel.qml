@@ -13,6 +13,10 @@ Rectangle{
     property var style
     property int curr_index : 1
     property var polygonpointTool
+    property bool wrongInfo_visible
+
+    signal save()
+    signal clear()
 
     ColumnLayout {
         anchors.fill: parent
@@ -35,6 +39,9 @@ Rectangle{
                 Layout.fillHeight: true
                 Layout.preferredWidth: Units.pt(240)
                 Layout.rightMargin: -Units.pt(3)
+                wronginfo: wrongInfo_visible
+                onSaveMap: { root.save() }
+                onClearMap: { root.clear() }
             }
 
             ColumnLayout {
@@ -52,11 +59,17 @@ Rectangle{
                         style: root.style
                         text: "Primitive Element"
                         font { pointSize: 13; weight: Font.Bold }
+                        onClicked: {
+                            polygonpointTool.tool.changeEditorMode( 2 )
+                        }
                     }
                     StyledTabButton {
                         style: root.style
                         text: "Editor"
                         font { pointSize: 13; weight: Font.Bold }
+                        onClicked: {
+                            polygonpointTool.tool.changeEditorMode( 1 )
+                        }
                     }
                     StyledTabButton {
                         style: root.style
@@ -87,6 +100,7 @@ Rectangle{
                     currentIndex: bar.currentIndex
                     
                     PrimitiveElement {
+                        id: primitiveElement
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         polygonpointTool: root.polygonpointTool
@@ -102,6 +116,12 @@ Rectangle{
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         polygonpointTool: root.polygonpointTool
+                        onVers_saved: {
+                            primitiveElement.simulateClearClick()
+                        }
+                        onVers_cleared: {
+                            primitiveElement.simulateClearClick()
+                        }
                     }
                 }
             }

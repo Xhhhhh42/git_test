@@ -15,10 +15,16 @@ Rectangle {
     property string config: iconFromCharCode(0xf08bb)
     property string save: iconFromCharCode(0xf0818) 
     property string clear: iconFromCharCode(0xf0a7a) 
+    property int polygon_config: 0
+    property int intepolation_config: 0
+    property int smooth_config: 0
+    property bool wronginfo
 
     //https://pictogrammers.github.io/@mdi/font/6.1.95/
 
     signal changeSaved()
+    signal saveMap()
+    signal clearMap()
 
     QtObject {
     id: pTool
@@ -113,8 +119,7 @@ Rectangle {
                         font { family: Style.iconFontFamily }
                     }
                     onClicked: {
-                        // Service.callAsync("/mapbag_editor_server_node/redo", "hector_std_msgs/StringService",
-                        //                             { param: ""})
+                        root.saveMap()
                     }
                 }
 
@@ -129,9 +134,17 @@ Rectangle {
                         font { family: Style.iconFontFamily }
                     }
                     onClicked: {
-                        // Service.callAsync("/mapbag_editor_server_node/redo", "hector_std_msgs/StringService",
-                        //                             { param: ""})
+                        root.clearMap()
                     }
+                }
+
+                Text {
+                    Layout.preferredHeight: Units.pt(20)
+                    Layout.topMargin: Units.pt(6)
+                    Layout.leftMargin: Units.pt(10)
+                    text: "Wrong Konkavhull Points"
+                    color: "red"
+                    visible: wronginfo
                 }
             } 
 
@@ -151,7 +164,15 @@ Rectangle {
                     Layout.preferredHeight: Units.pt(20)
                     Layout.topMargin: -Units.pt(2)
                     Layout.leftMargin: Units.pt(4)
-                    model: [ "Konvexhull", "Sequentiell" ]
+                    model: [ "Konkavhull", "Konvexhull", "Room_Walls" ]
+
+                    onActivated: {
+                        if( polygon_config != currentIndex ) {
+                            polygon_config = currentIndex
+                            Service.callAsync("/mapbag_editor_server_node/systemsettings", "mapbag_editor_msgs/Settings",
+                                             { polygon_mode: polygon_config, intepolation_mode: intepolation_config, smooth_mode: smooth_config })
+                        }
+                    }
                 }
             }
 
@@ -169,10 +190,18 @@ Rectangle {
                 ComboBox {
                     id: intepolationComboBox
                     Layout.preferredHeight: Units.pt(20)
-                    Layout.preferredWidth: Units.pt(70)
+                    Layout.preferredWidth: Units.pt(91)
                     Layout.topMargin: -Units.pt(2)
                     Layout.leftMargin: Units.pt(2)
                     model: [ "Global", "Addtiv" ]
+
+                    onActivated: {
+                        if( intepolation_config != currentIndex ) {
+                            intepolation_config = currentIndex
+                            Service.callAsync("/mapbag_editor_server_node/systemsettings", "mapbag_editor_msgs/Settings",
+                                                    { polygon_mode: polygon_config, intepolation_mode: intepolation_config, smooth_mode: smooth_config })
+                        }
+                    }
                 }
             }
 
@@ -190,9 +219,17 @@ Rectangle {
                 ComboBox {
                     id: smoothComboBox
                     Layout.preferredHeight: Units.pt(20)
-                    Layout.preferredWidth: Units.pt(100)
-                    Layout.leftMargin: Units.pt(24)
-                    model: [ "Spline Curve", "Sequentiell" ]
+                    Layout.preferredWidth: Units.pt(124)
+                    Layout.leftMargin: Units.pt(8)
+                    model: [ "Adaptive Filter", "Spline Curve" ]
+
+                    onActivated: {
+                        if( smooth_config != currentIndex ) {
+                            smooth_config = currentIndex
+                            Service.callAsync("/mapbag_editor_server_node/systemsettings", "mapbag_editor_msgs/Settings",
+                                                    { polygon_mode: polygon_config, intepolation_mode: intepolation_config, smooth_mode: smooth_config })
+                        }
+                    }
                 }
             }
         }

@@ -92,6 +92,7 @@ Rectangle {
                 RowLayout  {
                     Layout.fillWidth: true
                     Layout.preferredHeight: Units.pt(22)
+                    Layout.topMargin: Units.pt(1) 
                     spacing: 0
 
                     StyledButton {
@@ -124,7 +125,8 @@ Rectangle {
 
                 RowLayout  {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Units.pt(22)
+                    Layout.preferredHeight: Units.pt(20)
+                    Layout.topMargin: -Units.pt(1) 
                     spacing: 0
 
                     StyledButton {
@@ -161,6 +163,7 @@ Rectangle {
                 RowLayout  {
                     Layout.fillWidth: true
                     Layout.preferredHeight: Units.pt(22)
+                    Layout.topMargin: Units.pt(1) 
 
                     StyledButton {
                         Layout.preferredWidth: Units.pt(60)
@@ -180,7 +183,7 @@ Rectangle {
                                 }
                             }
                         }
-                        onClicked: {}
+                        onClicked: { polygonpointTool.tool.smooth_filter() }
                     }
                 }
             }

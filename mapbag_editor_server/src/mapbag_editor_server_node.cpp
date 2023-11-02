@@ -72,7 +72,7 @@ int main( int argc, char **argv )
 
   MapbagEditorServer<Scalar> server( nh, pnh ); 
 
-  ros::Subscriber submap_pos_sub = nh.subscribe( "/mapbag_editor_server_node/submap_posi", 1, submapPosCallback );
+  ros::Subscriber submap_pos_sub = nh.subscribe( "submap_posi", 1, submapPosCallback );
   pub_marker_pose = nh.advertise<geometry_msgs::Point>( "submap_new_center", 1, true );
   marker_server = std::make_shared<interactive_markers::InteractiveMarkerServer>( "submap_interactive_marker_server" );
   interactive_marker.name = "submap_marker";
@@ -116,39 +116,6 @@ int main( int argc, char **argv )
   }
 
   Pose<Scalar> marker_pose;
-  // auto update_function = [&]( const geometry_msgs::Pose &input ) {
-//     input_pose = poseToIsometry( input ).cast<Scalar>();
-//     Isometry3<Scalar> rotation_transform = Isometry3<Scalar>::Identity();
-//     rotation_transform.linear() = input_pose.linear();
-
-//     marker_pose.orientation() = input_pose.rotation();
-//     marker_pose.translation() = input_pose.translation();
-//     Pose<Scalar> pose = marker_pose;
-//     SupportPolygon<Scalar> support_polygon;
-//     debug_information.iterations.clear();
-// #if ENABLE_TIMING_OUTPUT
-//     result_stability = HECTOR_TIME_AND_RETURN_ROS(
-//         Scalar, pose_estimator.predictPoseAndSupportPolygon( pose, support_polygon ),
-//         "Pose Estimation" );
-// #else
-//     result_stability = pose_estimator.predictPoseAndSupportPolygon( pose, support_polygon );
-// #endif
-//     debug_information = pose_estimator.debugInformation();
-
-//     result_pose = pose;
-//     std_msgs::Int32 iterations_msg;
-//     iterations_msg.data = debug_information.iterations.size();
-//     pub_iterations.publish( iterations_msg );
-
-//     showIteration( debug_information.iterations.size(), broadcaster );
-  // };
-  // marker_server.insert( interactive_marker,
-  //                [&]( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback ) {
-  //                  if ( feedback->event_type !=
-  //                       visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE )
-  //                    return;
-  //                  update_function( feedback->pose );
-  //                } );
   marker_server->insert( interactive_marker, &processFeedback );
   marker_server->applyChanges();
 

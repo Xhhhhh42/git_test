@@ -4,6 +4,7 @@
 #include "grahamscan_ch_executor.h"
 #include "bresenhams_line_executor.h"
 #include "cubic_spline.h"
+#include "concav_hull_generator.h"
 
 #include <ros/ros.h>
 #include <hector_std_msgs/StringService.h>
@@ -14,6 +15,7 @@
 #include <grid_map_msgs/GridMap.h>
 #include <mapbag_editor_msgs/Polygon.h>
 #include <mapbag_editor_msgs/Submap.h>
+#include <mapbag_editor_msgs/Settings.h>
 
 #include <hector_math/types.h>
 
@@ -31,6 +33,12 @@ enum SaveMode {
     SAVE_NORMAL,
     SAVE_DELETE,
     SAVE_VERSCHIEBEN,
+};
+
+enum PolygonMode {
+    KONKAVHULL,
+    KONVEXHULL,
+    ROOMWALLS,
 };
 
 public:
@@ -76,6 +84,9 @@ private:
 
     void index_line_op( hector_world_heightmap::MapBagIndex &index_start, const hector_math::Vector3<Scalar> &polygon_point );
 
+    void index_line_generate( const hector_math::Vector3<Scalar> &point_start, const hector_math::Vector3<Scalar> &point_end, 
+                              std::vector<hector_math::Vector2<Eigen::Index>> &indices );
+
     void saveSubmapCallback( const grid_map_msgs::GridMap &msg );
 
     void saveVerschiebenCallback( const grid_map_msgs::GridMap &msg );
@@ -108,6 +119,10 @@ private:
     bool onSaveModeChange( hector_std_msgs::StringServiceRequest &req,
                            hector_std_msgs::StringServiceResponse &resp );
 
+    bool onSettingsChange( mapbag_editor_msgs::SettingsRequest &req,
+                           mapbag_editor_msgs::SettingsResponse &resp );
+
+    //ROS 
     ros::NodeHandle nh_, pnh_;
 
     ros::ServiceServer save_service_, load_service_;
@@ -117,7 +132,13 @@ private:
     ros::ServiceServer clearmapbag_service_; 
     ros::ServiceServer undo_service_, redo_service_; 
     ros::ServiceServer save_mode_service_;
+    ros::ServiceServer system_settings_service_;
+    std::vector<ros::Publisher> map_publishers_;
+    ros::Publisher pub_resolution_, pub_frame_;
+    ros::Publisher pub_submap_, pub_submap_ref_, pub_submap_pos_;
+    ros::Subscriber changedsubmap_sub_, verschiebsubmap_sub_;
 
+    //Mapbag
     std::string map_url_;
 
     std::vector<hector_math::Vector3<Scalar>> last_confirmed_points_;
@@ -134,25 +155,25 @@ private:
     hector_math::Vector2<Scalar> submap_origin_;
     hector_math::Vector2<Eigen::Index> submap_size_;
 
-    std::vector<ros::Publisher> map_publishers_;
-    ros::Publisher pub_resolution_, pub_frame_;
-    ros::Publisher pub_submap_, pub_submap_ref_, pub_submap_pos_;
-    ros::Subscriber changedsubmap_sub_, verschiebsubmap_sub_;
-
     std::vector<hector_math::GridMap<Scalar>> sub_submaps_;
     std::vector<hector_math::Vector2<Scalar>> submap_locations_;
     std::shared_ptr<GrahamScan_CH_Executor<Scalar>> gs_ch_executor_;
     std::shared_ptr<Bresenhams_Line_Executor<Eigen::Index>> bh_line_executor_;
+    std::shared_ptr<Concav_Hull_Generator<Scalar>> concav_hull_generator_;
     std::shared_ptr<Cubic_Spline<Scalar>> cubic_spline_;
     std::vector<hector_math::Vector2<Eigen::Index>> line_indices_;
     std::vector<hector_math::Vector2<Eigen::Index>> polygonIte_indices_;
     hector_math::Polygon<Eigen::Index> polygonpoints_indices_;
 
+    //Server Parameters
     std::shared_ptr<Invoker> invoker_;
 
     bool poly_submap_confirmed_;
-    int invoker_first_save_;
+    // int invoker_first_save_;
     SaveMode save_mode_;
+    PolygonMode polygon_mode_;
+    int intepolation_mode_;
+    int smooth_mode_; 
 };
 } //namespace mapbag_editor_server
 

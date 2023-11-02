@@ -49,7 +49,7 @@ Dialog {
         zTextField_Prism.clear()
         length_Prism.clear()
         width_Prism.clear()
-        winkel_Prism.clear()
+        height_Prism.clear()
     }
 
     function init() {
@@ -444,9 +444,9 @@ Dialog {
                                 Layout.topMargin: -Units.pt(1)
 
                                 TextField {
-                                    id: winkel_Prism
-                                    placeholderText: "Winkel"
-                                    validator: IntValidator{bottom: 1; top: 85;}
+                                    id: height_Prism
+                                    placeholderText: "Height"
+                                    validator: DoubleValidator{}
                                 }
                             }
 
@@ -595,7 +595,7 @@ Dialog {
         }
 
         if( typeIndex == 3 ) {
-            if ( !xTextField_Prism.text || !yTextField_Prism.text || !length_Prism.text || !width_Prism.text || !winkel_Prism.text ) {
+            if ( !xTextField_Prism.text || !yTextField_Prism.text || !length_Prism.text || !width_Prism.text || !height_Prism.text ) {
                 warnings.visible = true
                 return
             }
@@ -609,7 +609,7 @@ Dialog {
             zpub = (zTextField_Prism.text) || 0
             lengthpub = length_Prism.text
             widthpub = width_Prism.text
-            winkelpub = winkel_Prism.text
+            winkelpub = height_Prism.text
             clear_Prism()
             close()
         }
@@ -633,7 +633,7 @@ Dialog {
         } else if( typeIndex == 3 ) {
             newpoint_position.push(parseFloat(xTextField_Prism.text)) 
             newpoint_position.push(parseFloat(yTextField_Prism.text))
-            newpoint_position.push(effectTypeComboBox.currentIndex)
+            newpoint_position.push(height_Prism.text)
         }   
         return newpoint_position
     }
@@ -651,7 +651,7 @@ Dialog {
             pri_mode.push(0) 
             pri_mode.push(0) 
         } else if( typeIndex == 3 ) {
-            pri_mode.push(winkel_Prism.text)
+            pri_mode.push(effectTypeComboBox.currentIndex)
             pri_mode.push((x_rise)? 1 : 0)
         }  
         return pri_mode

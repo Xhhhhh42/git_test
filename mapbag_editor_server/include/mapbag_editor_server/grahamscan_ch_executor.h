@@ -26,11 +26,11 @@ public:
     std::vector<hector_math::Vector3<Scalar>> ch_points() { return ch_points_; }
 
 private:
-    bool comparepoints( hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 );
+    bool comparepoints( const hector_math::Vector3<Scalar>& p1, const hector_math::Vector3<Scalar>& p2 );
 
-    int orien_comp( hector_math::Vector3<Scalar> p0, hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 );
+    int orien_comp( const hector_math::Vector3<Scalar>& p0, const hector_math::Vector3<Scalar>& p1, const hector_math::Vector3<Scalar>& p2 );
 
-    bool polar_order( hector_math::Vector3<Scalar> p1, hector_math::Vector3<Scalar> p2 );
+    bool polar_order( const hector_math::Vector3<Scalar>& p1, const hector_math::Vector3<Scalar>& p2 );
 
     bool findP0( );
 
